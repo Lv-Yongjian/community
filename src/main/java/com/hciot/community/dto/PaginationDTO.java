@@ -16,13 +16,8 @@ public class PaginationDTO {
     private List<Integer> pages = new ArrayList<>();//显示页数列表
     private Integer totalPage;
 
-    public void setPagination(Integer totalCount, Integer page, Integer size) {
-//        Integer totalPage;//总页数
-        if (totalCount % size == 0) {
-            totalPage = totalCount / size;
-        } else {
-            totalPage = totalCount / size + 1;
-        }
+    public void setPagination(Integer totalPage, Integer page) {
+        this.totalPage = totalPage;//总页数
         this.page = page;//获取页数提供页面判断是否高亮
         pages.add(page);//添加页数列表
         for (int i = 1; i <= 3; i++) {
