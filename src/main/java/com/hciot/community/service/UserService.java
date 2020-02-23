@@ -10,6 +10,7 @@ import java.util.List;
 
 @Service
 public class UserService {
+
     @Autowired(required = false)
     private UserMapper userMapper;
 
