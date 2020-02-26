@@ -1,5 +1,6 @@
 package com.hciot.community.mapper;
 
+import com.hciot.community.dto.QuestionQueryDTO;
 import com.hciot.community.model.Question;
 import com.hciot.community.model.QuestionExample;
 import org.apache.ibatis.annotations.Param;
@@ -14,4 +15,7 @@ public interface QuestionExtMapper {
 
     List<Question> selectRelated(Question question);
 
+    Integer countBySearch(QuestionQueryDTO questionQueryDTO);
+
+    List<Question> selectBySearch(QuestionQueryDTO questionQueryDTO);
 }

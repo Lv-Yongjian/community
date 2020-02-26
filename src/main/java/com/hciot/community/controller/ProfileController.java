@@ -2,6 +2,7 @@ package com.hciot.community.controller;
 
 import com.hciot.community.dto.PaginationDTO;
 import com.hciot.community.model.User;
+import com.hciot.community.service.NotificationService;
 import com.hciot.community.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -18,6 +19,9 @@ public class ProfileController {
     @Autowired(required = false)
     private QuestionService questionService;
 
+    @Autowired(required = false)
+    private NotificationService notificationService;
+
     @GetMapping("/profile/{action}")
     public String profile(@PathVariable(name = "action") String action,
                           HttpServletRequest request,
@@ -31,12 +35,14 @@ public class ProfileController {
         if ("questions".equals(action)) {
             model.addAttribute("section", "questions");
             model.addAttribute("sectionName", "我的提问");
+            PaginationDTO paginationDTO = questionService.list(user.getId(), page, size);
+            model.addAttribute("pagination", paginationDTO);
         } else if ("replies".equals(action)) {
+            PaginationDTO paginationDTO = notificationService.list(user.getId(), page, size);
+            model.addAttribute("pagination", paginationDTO);
             model.addAttribute("section", "replies");
             model.addAttribute("sectionName", "最新回复");
         }
-        PaginationDTO pagination = questionService.list(user.getId(), page, size);
-        model.addAttribute("pagination", pagination);
         return "profile";
     }
 }
