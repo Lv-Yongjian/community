@@ -2,11 +2,9 @@ package com.hciot.community.controller;
 
 import com.hciot.community.dto.AccesstokenDTO;
 import com.hciot.community.dto.GithubUser;
-import com.hciot.community.mapper.UserMapper;
 import com.hciot.community.model.User;
 import com.hciot.community.provider.GithubProvider;
 import com.hciot.community.service.UserService;
-import com.sun.deploy.net.HttpResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
