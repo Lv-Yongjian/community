@@ -8,8 +8,24 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @description: 标签缓存
+ * @projectName: community
+ * @author: Lv-YongJian
+ * @createTime: 2020/2/27 18:38
+ * @version: 1.0
+ */
 public class TagCache {
-    public static List<TagDTO> get(){
+
+    /**
+     * 获取标签库
+     *
+     * @param
+     * @return java.util.List<com.hciot.community.dto.TagDTO>
+     * @author Lv-YongJian
+     * @date 2020/2/27 18:39
+     */
+    public static List<TagDTO> get() {
         List<TagDTO> tagDTOS = new ArrayList<>();
         TagDTO program = new TagDTO();
         program.setCategoryName("开发语言");
@@ -39,10 +55,20 @@ public class TagCache {
         return tagDTOS;
     }
 
-    public static String filterInvalid(String tags){
+    /**
+     * 判断非法标签
+     *
+     * @param tags
+     * @return java.lang.String
+     * @author Lv-YongJian
+     * @date 2020/2/27 18:39
+     */
+    public static String filterInvalid(String tags) {
         String[] split = StringUtils.split(tags, ",");
         List<TagDTO> tagDTOS = get();
+        //使用 stream 流式处理，将标签库的标签装成一个 list 集合
         List<String> tagList = tagDTOS.stream().flatMap(tag -> tag.getTags().stream()).collect(Collectors.toList());
+        //使用 stream 流式处理，将输入标签中的非法标签过滤出来，用“,”分隔
         String invalid = Arrays.stream(split).filter(t -> !tagList.contains(t)).collect(Collectors.joining(","));
         return invalid;
     }

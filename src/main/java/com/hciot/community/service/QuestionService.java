@@ -11,6 +11,7 @@ import com.hciot.community.mapper.UserMapper;
 import com.hciot.community.model.Question;
 import com.hciot.community.model.QuestionExample;
 import com.hciot.community.model.User;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.session.RowBounds;
 import org.springframework.beans.BeanUtils;
@@ -22,7 +23,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @description: 问题服务层
+ * @projectName: community
+ * @author: Lv-YongJian
+ * @createTime: 2020/2/27 18:38
+ * @version: 1.0
+ */
 @Service
+@Slf4j
 public class QuestionService {
 
     @Autowired(required = false)
@@ -34,9 +43,19 @@ public class QuestionService {
     @Autowired(required = false)
     private UserMapper userMapper;
 
+    /**
+     * 搜索问题列表
+     *
+     * @param search 搜索内容
+     * @param page   页数
+     * @param size   条数
+     * @return com.hciot.community.dto.PaginationDTO
+     * @author Lv-YongJian
+     * @date 2020/2/28 16:22
+     */
     public PaginationDTO list(String search, Integer page, Integer size) {
 
-        if (StringUtils.isNotBlank(search)){
+        if (StringUtils.isNotBlank(search)) {
             String[] tags = StringUtils.split(search, " ");
             search = Arrays.stream(tags).collect(Collectors.joining("|"));
         }
@@ -77,6 +96,16 @@ public class QuestionService {
         return paginationDTO;
     }
 
+    /**
+     * 该用户问题列表
+     *
+     * @param userId 用户id
+     * @param page   页数
+     * @param size   条数
+     * @return com.hciot.community.dto.PaginationDTO
+     * @author Lv-YongJian
+     * @date 2020/2/28 16:24
+     */
     public PaginationDTO list(Long userId, Integer page, Integer size) {
         PaginationDTO paginationDTO = new PaginationDTO();
         QuestionExample questionExample = new QuestionExample();
@@ -119,9 +148,18 @@ public class QuestionService {
         return paginationDTO;
     }
 
+    /**
+     * 获取有 user 的问题对象
+     *
+     * @param id 问题id
+     * @return com.hciot.community.dto.QuestionDTO
+     * @author Lv-YongJian
+     * @date 2020/2/28 16:25
+     */
     public QuestionDTO getById(Long id) {
         Question question = questionMapper.selectByPrimaryKey(id);
-        if (question == null){
+        if (question == null) {
+            log.error("question no found {}", question);
             throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
         }
         QuestionDTO questionDTO = new QuestionDTO();
@@ -131,13 +169,21 @@ public class QuestionService {
         return questionDTO;
     }
 
+    /**
+     * 创建or更新问题
+     *
+     * @param question
+     * @return void
+     * @author Lv-YongJian
+     * @date 2020/2/28 16:26
+     */
     public void createOrUpdate(Question question) {
-        if (question.getId() == null){
+        if (question.getId() == null) {
             //创建
             question.setGmtCreate(System.currentTimeMillis());
             question.setGmtModified(question.getGmtCreate());
-             questionMapper.insertSelective(question);
-        }else {
+            questionMapper.insertSelective(question);
+        } else {
             //更新
             Question updateQuestion = new Question();
             updateQuestion.setGmtModified(System.currentTimeMillis());
@@ -148,12 +194,21 @@ public class QuestionService {
             example.createCriteria()
                     .andIdEqualTo(question.getId());
             int update = questionMapper.updateByExampleSelective(updateQuestion, example);
-            if (update != 1){
+            if (update != 1) {
+                log.error("question no found {}", question);
                 throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
             }
         }
     }
 
+    /**
+     * 新增阅读数
+     *
+     * @param id 问题id
+     * @return void
+     * @author Lv-YongJian
+     * @date 2020/2/28 16:29
+     */
     public void incView(Long id) {
         Question question = new Question();
         question.setId(id);
@@ -161,17 +216,29 @@ public class QuestionService {
         questionExtMapper.incView(question);
     }
 
+    /**
+     * 相关问题列表
+     *
+     * @param queryDTO 问题对象
+     * @return java.util.List<com.hciot.community.dto.QuestionDTO>
+     * @author Lv-YongJian
+     * @date 2020/2/28 15:20
+     */
     public List<QuestionDTO> selectRelated(QuestionDTO queryDTO) {
-        if (StringUtils.isBlank(queryDTO.getTag())){
+        //若问题标签为空，则没有相关问题
+        if (StringUtils.isBlank(queryDTO.getTag())) {
             return new ArrayList<>();
         }
+        //将标签以,拆分，用|连接成字符串
         String[] tags = StringUtils.split(queryDTO.getTag(), ",");
         String regexTag = Arrays.stream(tags).collect(Collectors.joining("|"));
         Question question = new Question();
         question.setId(queryDTO.getId());
         question.setTag(regexTag);
 
+        //模糊搜索相关问题
         List<Question> questions = questionExtMapper.selectRelated(question);
+        //将 Question 对象转换成 QuestionDTO 对象
         List<QuestionDTO> questionDTOS = questions.stream().map(q -> {
             QuestionDTO questionDTO = new QuestionDTO();
             BeanUtils.copyProperties(q, questionDTO);

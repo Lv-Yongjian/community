@@ -14,17 +14,36 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
+/**
+ * @description: 拦截器
+ * @projectName: community
+ * @author: Lv-YongJian
+ * @createTime: 2020/2/27 18:38
+ * @version: 1.0
+ */
 @Service
 public class SessionInterceptor implements HandlerInterceptor {
 
-    @Autowired
+    @Autowired(required = false)
     private UserMapper userMapper;
+
     @Autowired
     private NotificationService notificationService;
 
+    /**
+     * 登录拦截器
+     *
+     * @param request
+     * @param response
+     * @param handler
+     * @return boolean
+     * @author Lv-YongJian
+     * @date 2020/2/28 15:56
+     */
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         Cookie[] cookies = request.getCookies();
+        //获取 cookie 中的 token ，查询数据库，是否有该用户
         if (cookies != null && cookies.length != 0) {
             for (Cookie cookie : cookies) {
                 if (cookie.getName().equals("token")) {
@@ -34,6 +53,7 @@ public class SessionInterceptor implements HandlerInterceptor {
                             .andTokenEqualTo(token);
                     List<User> users = userMapper.selectByExample(userExample);
                     if (users.size() != 0) {
+                        //若该用户存在，则放在 session 中，并获取未读通知数
                         request.getSession().setAttribute("user", users.get(0));
                         Long unreadCount = notificationService.unreadCount(users.get(0).getId());
                         request.getSession().setAttribute("unreadCount", unreadCount);
